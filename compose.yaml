@@ -2,13 +2,30 @@ services:
   api:
     build: ./services/api
     environment:
+      DJONE_ENV: ${DJONE_ENV:-development}
       DJONE_MODE: ${DJONE_MODE:-assistant}
+      DJONE_API_TOKEN: ${DJONE_API_TOKEN:-}
       DATABASE_URL: postgresql://djone:${POSTGRES_PASSWORD:-djone}@postgres:5432/djone
       REDIS_URL: redis://redis:6379/0
-    ports: ["8090:8090"]
+      BRIDGE_URL: http://mixxx-bridge:8091
+      BRIDGE_TOKEN: ${BRIDGE_TOKEN:-}
+    ports: ["127.0.0.1:8090:8090"]
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
+      mixxx-bridge: { condition: service_healthy }
+    restart: unless-stopped
+  mixxx-bridge:
+    build: ./services/mixxx-bridge
+    environment:
+      BRIDGE_TOKEN: ${BRIDGE_TOKEN:-}
+      MIXXX_EXECUTION_ENABLED: ${MIXXX_EXECUTION_ENABLED:-false}
+      EMERGENCY_STOP: ${EMERGENCY_STOP:-false}
+    healthcheck:
+      test: ["CMD","python","-c","import urllib.request; urllib.request.urlopen('http://localhost:8091/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     restart: unless-stopped
   postgres:
     image: postgres:17-alpine
@@ -16,7 +33,9 @@ services:
       POSTGRES_USER: djone
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-djone}
       POSTGRES_DB: djone
-    volumes: [djone_pg:/var/lib/postgresql/data]
+    volumes:
+      - djone_pg:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
     healthcheck:
       test: ["CMD-SHELL","pg_isready -U djone -d djone"]
       interval: 5s
