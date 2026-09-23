@@ -1,0 +1,25 @@
+# DJONE Acceptance Checklist
+
+- [x] Repository bootstrap
+- [x] Dashboard shell
+- [x] FastAPI control API
+- [x] Authentication/idempotency boundary
+- [x] PostgreSQL + Redis
+- [x] Docker Mixxx Bridge
+- [x] Native authenticated adapter
+- [x] Docker → native reachability
+- [x] VirMIDI device provisioned
+- [x] Remix API contract
+- [x] Staging deployment on Codestra
+- [ ] Mixxx binds DJONE Native Bridge mapping
+- [ ] Real controller feedback observed
+- [ ] Reversible Deck-1 command/readback passes
+- [ ] Durable ledger wired to command execution
+- [ ] Idempotency effect test passes
+- [ ] Emergency/manual override passes
+- [ ] Demucs runtime installed/certified
+- [ ] ACE-Step runtime selected/certified
+- [ ] Production dashboard uses live deck state/waveforms
+- [ ] Exact-SHA release CI green
+- [ ] Backup/rollback test
+- [ ] Production execution explicitly enabled
