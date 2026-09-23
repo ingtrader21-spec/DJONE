@@ -43,3 +43,9 @@ CREATE TABLE IF NOT EXISTS webhook_subscriptions (
  secret_ref TEXT NOT NULL, enabled BOOLEAN NOT NULL DEFAULT true,
  created_at TIMESTAMPTZ NOT NULL DEFAULT now(), UNIQUE(domain,endpoint)
 );
+
+CREATE TABLE IF NOT EXISTS webhook_dead_letters (
+ id UUID PRIMARY KEY DEFAULT gen_random_uuid(), outbox_id UUID NOT NULL, event_type TEXT NOT NULL,
+ endpoint TEXT NOT NULL, attempts INTEGER NOT NULL, last_error TEXT, payload JSONB NOT NULL,
+ created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
