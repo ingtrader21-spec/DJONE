@@ -1,0 +1,13 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DJONE</title><link rel="stylesheet" href="/ui/app.css"></head>
+<body><header><div><b>DJONE</b><span>Codestra AI DJ</span></div><div id="health" class="pill">checking…</div></header>
+<main>
+<section class="hero"><div><small>CONTROL ROOM</small><h1>AI-assisted DJ workstation</h1><p>Prepare, remix and control four decks through one governed interface.</p></div><div class="modes"><button data-mode="assistant" class="active">Assistant</button><button data-mode="copilot">Copilot</button><button data-mode="auto">Auto-DJ</button></div></section>
+<section class="grid decks">
+<div class="deck"><label>DECK A</label><div class="wave">▁▃▅▇▆▃▂▅▇▅▃▁▃▆▇▅▂</div><h2>Ready</h2><div><button onclick="cmd('play',1)">▶ Play</button><button onclick="cmd('pause',1)">Ⅱ Pause</button><button onclick="cmd('sync',1)">Sync</button></div></div>
+<div class="deck"><label>DECK B</label><div class="wave">▂▅▇▃▆▇▅▂▁▃▇▆▅▃▂▅▇</div><h2>Ready</h2><div><button onclick="cmd('play',2)">▶ Play</button><button onclick="cmd('pause',2)">Ⅱ Pause</button><button onclick="cmd('sync',2)">Sync</button></div></div>
+<div class="deck"><label>DECK C</label><div class="wave">▁▆▃▇▅▂▆▇▃▁▅▇▆▂▃▅▇</div><h2>Ready</h2><div><button onclick="cmd('play',3)">▶ Play</button><button onclick="cmd('pause',3)">Ⅱ Pause</button><button onclick="cmd('sync',3)">Sync</button></div></div>
+<div class="deck"><label>DECK D</label><div class="wave">▃▇▅▂▁▆▇▃▅▂▇▆▃▁▅▆▇</div><h2>Ready</h2><div><button onclick="cmd('play',4)">▶ Play</button><button onclick="cmd('pause',4)">Ⅱ Pause</button><button onclick="cmd('sync',4)">Sync</button></div></div>
+</section>
+<section class="grid bottom"><article><h3>AI Agent</h3><p>Commands are policy checked before reaching the bridge.</p><input id="prompt" placeholder="e.g. prepare Deck B for the next transition"><button onclick="agent()">Send</button></article><article><h3>Remix Studio</h3><p>Stems → arrangement → generation → mastering.</p><button disabled>ACE-Step · pending runtime</button><button disabled>Demucs · pending runtime</button></article><article><h3>System</h3><pre id="status">Loading…</pre><button class="danger" onclick="emergency()">Emergency stop</button></article></section>
+<section><h3>Command activity</h3><div id="log" class="log">No commands yet.</div></section>
+</main><script src="/ui/app.js"></script></body></html>
