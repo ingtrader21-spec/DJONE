@@ -25,3 +25,12 @@ def test_remix_contract():
     assert c.get(f"/v1/remix/jobs/{jid}").status_code==200
     caps=c.get("/v1/remix/capabilities").json()
     assert caps["demucs_runtime"] is False
+
+def test_integration_registry():
+    r=c.get("/v1/integrations")
+    assert r.status_code==200
+    ids={x["id"] for x in r.json()["domains"]}
+    assert ids=={"core","library","decks","commands","safety","sessions","agent","remix"}
+
+def test_integration_unknown():
+    assert c.get("/v1/integrations/nope").status_code==404
