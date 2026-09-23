@@ -1,4 +1,6 @@
 from fastapi import FastAPI, Header, HTTPException, Response
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from typing import Literal
 import os, time, uuid
@@ -8,6 +10,7 @@ MODE = os.getenv("DJONE_MODE", "assistant")
 ENV = os.getenv("DJONE_ENV", "development")
 API_TOKEN = os.getenv("DJONE_API_TOKEN", "")
 STARTED = time.time()
+UI_DIR = os.path.join(os.path.dirname(__file__), "ui")
 ALLOWED = {"load_track","play","pause","stop","set_gain","set_tempo","set_key","set_loop","set_hotcue","sync","record_start","record_stop"}
 COMMANDS: dict[str, dict] = {}
 
@@ -23,6 +26,12 @@ def authorize(authorization: str | None):
         return
     if authorization != f"Bearer {API_TOKEN}":
         raise HTTPException(401, "unauthorized")
+
+app.mount("/ui", StaticFiles(directory=UI_DIR), name="ui")
+
+@app.get("/")
+def dashboard():
+    return FileResponse(os.path.join(UI_DIR, "index.html"))
 
 @app.get("/health")
 def health():
