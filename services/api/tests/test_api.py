@@ -13,3 +13,7 @@ def test_command_idempotency():
     b=c.post("/v1/commands",json={"action":"play","deck":1},headers=h)
     assert a.status_code==202 and a.json()["id"]==b.json()["id"]
 def test_reject_unknown(): assert c.post("/v1/commands",json={"action":"shell"}).status_code==422
+
+def test_dashboard():
+    r=c.get("/")
+    assert r.status_code==200 and "DJONE" in r.text and "DECK A" in r.text
