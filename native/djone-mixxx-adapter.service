@@ -1,0 +1,10 @@
+[Unit]
+Description=DJONE Native Mixxx Adapter
+After=pipewire.service
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 %h/Desktop/DJONE/native/mixxx_adapter.py
+Restart=on-failure
+EnvironmentFile=%h/.config/djone/native.env
+[Install]
+WantedBy=default.target
