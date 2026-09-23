@@ -1,0 +1,20 @@
+name: release-candidate
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.13"}
+      - run: pip install -r services/api/requirements.txt
+      - run: PYTHONPATH=services/api pytest -q services/api/tests
+      - run: docker compose config
+      - run: docker build -t djone-api:${{ github.sha }} services/api
+      - run: docker build -t djone-mixxx-bridge:${{ github.sha }} services/mixxx-bridge
+      - run: |
+          test "$(grep '^MIXXX_EXECUTION_ENABLED=' .env.example | cut -d= -f2)" = "false"
+          test "$(grep '^EMERGENCY_STOP=' .env.example | cut -d= -f2)" = "false"
