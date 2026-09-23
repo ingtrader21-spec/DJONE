@@ -30,6 +30,16 @@ services:
       timeout: 3s
       retries: 10
     restart: unless-stopped
+  webhook-worker:
+    build: ./services/api
+    command: ["python","-m","app.webhook_worker"]
+    environment:
+      DATABASE_URL: postgresql://djone:${POSTGRES_PASSWORD:-djone}@postgres:5432/djone
+      WEBHOOK_MAX_ATTEMPTS: 6
+      WEBHOOK_POLL_SECONDS: 2
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: unless-stopped
   postgres:
     image: postgres:17-alpine
     environment:
