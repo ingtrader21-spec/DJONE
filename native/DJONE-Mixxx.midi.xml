@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MixxxMIDIPreset mixxxVersion="2.5+" schemaVersion="1">
+ <info><name>DJONE Native Bridge</name><author>Codestra</author><description>Governed DJONE control/readback mapping. Staging certification only.</description></info>
+ <controller id="DJONE-Mixxx">
+  <controls>
+   <!-- The initial mapping is deliberately feedback-first. MIDI addresses are frozen only after Mixxx enumerates the virtual DJONE endpoint. -->
+  </controls>
+ </controller>
+</MixxxMIDIPreset>
