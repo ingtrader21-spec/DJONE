@@ -15,6 +15,7 @@ jobs:
       - run: docker compose config
       - run: docker build -t djone-api:${{ github.sha }} services/api
       - run: docker build -t djone-mixxx-bridge:${{ github.sha }} services/mixxx-bridge
-      - run: |
-          test "$(grep '^MIXXX_EXECUTION_ENABLED=' .env.example | cut -d= -f2)" = "false"
-          test "$(grep '^EMERGENCY_STOP=' .env.example | cut -d= -f2)" = "false"
+      - run: test "$(grep '^MIXXX_EXECUTION_ENABLED=' .env.example | cut -d= -f2)" = "false"
+      - run: test "$(grep '^EMERGENCY_STOP=' .env.example | cut -d= -f2)" = "false"
+      - run: grep -q 'webhook-worker:' compose.yaml
+      - run: grep -q 'webhook_dead_letters' infra/postgres/init.sql
