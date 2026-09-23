@@ -2,12 +2,14 @@ from fastapi import FastAPI, Header, HTTPException, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.remix import router as remix_router
+from app.core import router as core_router
 from pydantic import BaseModel, Field
 from typing import Literal
 import os, time, uuid
 
 app = FastAPI(title="DJONE Control API", version="0.3.0")
 app.include_router(remix_router)
+app.include_router(core_router)
 MODE = os.getenv("DJONE_MODE", "assistant")
 ENV = os.getenv("DJONE_ENV", "development")
 API_TOKEN = os.getenv("DJONE_API_TOKEN", "")
