@@ -17,3 +17,11 @@ def test_reject_unknown(): assert c.post("/v1/commands",json={"action":"shell"})
 def test_dashboard():
     r=c.get("/")
     assert r.status_code==200 and "DJONE" in r.text and "DECK A" in r.text
+
+def test_remix_contract():
+    r=c.post("/v1/remix/jobs",json={"source_path":"/music/test.wav","operation":"stems"})
+    assert r.status_code==202
+    jid=r.json()["id"]
+    assert c.get(f"/v1/remix/jobs/{jid}").status_code==200
+    caps=c.get("/v1/remix/capabilities").json()
+    assert caps["demucs_runtime"] is False
