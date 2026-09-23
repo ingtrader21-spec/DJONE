@@ -19,9 +19,9 @@ services:
     build: ./services/mixxx-bridge
     environment:
       BRIDGE_TOKEN: ${BRIDGE_TOKEN:-}
-      DJONE_NATIVE_TOKEN: ${DJONE_NATIVE_TOKEN:-}
-      DJONE_NATIVE_HOST: 172.21.0.1
-      DJONE_NATIVE_PORT: 18091
+      DJONE_MIXXX_TOKEN: ${DJONE_MIXXX_TOKEN:-}
+      DJONE_MIXXX_HOST: 172.21.0.1
+      DJONE_MIXXX_PORT: 18092
       MIXXX_EXECUTION_ENABLED: ${MIXXX_EXECUTION_ENABLED:-false}
       EMERGENCY_STOP: ${EMERGENCY_STOP:-false}
     healthcheck:
