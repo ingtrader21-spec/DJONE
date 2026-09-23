@@ -1,0 +1,77 @@
+openapi: 3.1.0
+info:
+  title: DJONE Platform API
+  version: 1.0.0-alpha
+  description: Governed AI DJ, Mixxx control, library, remix and operations contract.
+servers:
+  - url: http://127.0.0.1:8092
+    description: Codestra staging
+tags:
+  - {name: system}
+  - {name: decks}
+  - {name: commands}
+  - {name: agent}
+  - {name: remix}
+  - {name: library}
+  - {name: sessions}
+  - {name: safety}
+paths:
+  /health:
+    get: {tags: [system], operationId: health, responses: {"200": {description: Healthy}}}
+  /ready:
+    get: {tags: [system], operationId: readiness, responses: {"200": {description: Ready}, "503": {description: Not ready}}}
+  /v1/capabilities:
+    get: {tags: [system], operationId: capabilities, responses: {"200": {description: Capability matrix}}}
+  /v1/decks:
+    get: {tags: [decks], operationId: listDecks, responses: {"200": {description: Four-deck state}}}
+  /v1/decks/{deck}:
+    get:
+      tags: [decks]
+      operationId: getDeck
+      parameters: [{name: deck, in: path, required: true, schema: {type: integer, minimum: 1, maximum: 4}}]
+      responses: {"200": {description: Observed deck state}}
+  /v1/commands:
+    post:
+      tags: [commands]
+      operationId: submitCommand
+      parameters: [{name: Idempotency-Key, in: header, required: true, schema: {type: string}}]
+      responses: {"202": {description: Accepted}, "401": {description: Unauthorized}, "422": {description: Invalid command}, "423": {description: Safety gate closed}}
+  /v1/commands/{idempotency_key}:
+    get:
+      tags: [commands]
+      operationId: getCommand
+      parameters: [{name: idempotency_key, in: path, required: true, schema: {type: string}}]
+      responses: {"200": {description: Command, execution and readback state}, "404": {description: Not found}}
+  /v1/agent/plan:
+    post: {tags: [agent], operationId: planAgentAction, responses: {"200": {description: Non-effectful plan}}}
+  /v1/agent/execute:
+    post: {tags: [agent], operationId: executeAgentPlan, responses: {"202": {description: Policy-approved actions queued}, "423": {description: Automation disabled}}}
+  /v1/remix/capabilities:
+    get: {tags: [remix], operationId: remixCapabilities, responses: {"200": {description: Runtime capabilities}}}
+  /v1/remix/jobs:
+    post: {tags: [remix], operationId: createRemixJob, responses: {"202": {description: Job queued}}}
+    get: {tags: [remix], operationId: listRemixJobs, responses: {"200": {description: Jobs}}}
+  /v1/remix/jobs/{job_id}:
+    get:
+      tags: [remix]
+      operationId: getRemixJob
+      parameters: [{name: job_id, in: path, required: true, schema: {type: string, format: uuid}}]
+      responses: {"200": {description: Job state}, "404": {description: Not found}}
+  /v1/library/tracks:
+    get: {tags: [library], operationId: listTracks, responses: {"200": {description: Tracks}}}
+    post: {tags: [library], operationId: ingestTrack, responses: {"202": {description: Ingest queued}}}
+  /v1/sessions:
+    post: {tags: [sessions], operationId: createSession, responses: {"201": {description: DJ session created}}}
+    get: {tags: [sessions], operationId: listSessions, responses: {"200": {description: Sessions}}}
+  /v1/sessions/{session_id}/events:
+    get:
+      tags: [sessions]
+      operationId: sessionEvents
+      parameters: [{name: session_id, in: path, required: true, schema: {type: string, format: uuid}}]
+      responses: {"200": {description: Auditable event stream}}
+  /v1/safety/status:
+    get: {tags: [safety], operationId: safetyStatus, responses: {"200": {description: Gates and override state}}}
+  /v1/safety/emergency-stop:
+    post: {tags: [safety], operationId: emergencyStop, responses: {"200": {description: Execution stopped}}}
+  /v1/safety/resume:
+    post: {tags: [safety], operationId: resumeAfterStop, responses: {"200": {description: Manual re-arm accepted}, "409": {description: Preconditions not satisfied}}}
