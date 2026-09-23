@@ -8,7 +8,7 @@ feedback is observed.
 """
 import json, os, socketserver, subprocess, threading, time
 
-HOST="127.0.0.1"; PORT=int(os.getenv("DJONE_NATIVE_PORT","18091"))
+HOST=os.getenv("DJONE_NATIVE_BIND","127.0.0.1"); PORT=int(os.getenv("DJONE_NATIVE_PORT","18091"))
 TOKEN=os.getenv("DJONE_NATIVE_TOKEN","")
 ALLOWED={"play","pause","sync","stop"}
 state={f"deck{i}":{"play":None,"sync":None,"observed_at":None} for i in range(1,5)}
