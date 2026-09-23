@@ -19,8 +19,13 @@ services:
     build: ./services/mixxx-bridge
     environment:
       BRIDGE_TOKEN: ${BRIDGE_TOKEN:-}
+      DJONE_NATIVE_TOKEN: ${DJONE_NATIVE_TOKEN:-}
+      DJONE_NATIVE_HOST: host.docker.internal
+      DJONE_NATIVE_PORT: 18091
       MIXXX_EXECUTION_ENABLED: ${MIXXX_EXECUTION_ENABLED:-false}
       EMERGENCY_STOP: ${EMERGENCY_STOP:-false}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD","python","-c","import urllib.request; urllib.request.urlopen('http://localhost:8091/health')"]
       interval: 5s
