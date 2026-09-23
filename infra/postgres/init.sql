@@ -37,3 +37,9 @@ CREATE TABLE IF NOT EXISTS webhook_outbox (
  delivered_at TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS webhook_outbox_pending_idx ON webhook_outbox(status,next_attempt_at);
+
+CREATE TABLE IF NOT EXISTS webhook_subscriptions (
+ id UUID PRIMARY KEY DEFAULT gen_random_uuid(), domain TEXT NOT NULL, endpoint TEXT NOT NULL,
+ secret_ref TEXT NOT NULL, enabled BOOLEAN NOT NULL DEFAULT true,
+ created_at TIMESTAMPTZ NOT NULL DEFAULT now(), UNIQUE(domain,endpoint)
+);
