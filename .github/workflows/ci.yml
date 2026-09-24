@@ -5,11 +5,35 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: djone
+          POSTGRES_PASSWORD: test-db
+          POSTGRES_DB: djone
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U djone -d djone"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://djone:test-db@127.0.0.1:5432/djone
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.13" }
       - run: pip install -r services/api/requirements.txt
+      - name: Initialize test schema
+        run: |
+          python - <<'PY'
+          import pathlib, psycopg
+          sql = pathlib.Path("infra/postgres/init.sql").read_text()
+          with psycopg.connect("postgresql://djone:test-db@127.0.0.1:5432/djone", autocommit=True) as db:
+              db.execute(sql)
+          PY
       - run: PYTHONPATH=services/api pytest -q
   compose:
     runs-on: ubuntu-latest
