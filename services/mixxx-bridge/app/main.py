@@ -38,8 +38,10 @@ def read(deck:int,x_bridge_token:str|None=Header(default=None)):
 def execute(c:Command,x_bridge_token:str|None=Header(default=None)):
  auth(x_bridge_token)
  if c.action not in ALLOWED: raise HTTPException(422,"unsupported action")
- if EMERGENCY: raise HTTPException(423,"emergency stop active")
- if not EXECUTE:return {"accepted":False,"executed":False,"reason":"execution gate closed"}
+ st=safety()
+ if st["emergency_stop"]: raise HTTPException(423,"emergency stop active")
+ if not st["certified"]: raise HTTPException(423,"Mixxx certification required")
+ if not st["execution_enabled"]: return {"accepted":False,"executed":False,"reason":"execution gate closed"}
  before=native({"op":"get","deck":c.deck,"control":c.action})
  if not before.get("ok"):return {"accepted":False,"executed":False,"reason":"native transport unavailable","native":before}
  result=native({"op":"set","deck":c.deck,"control":c.action,"value":float(c.value)})
