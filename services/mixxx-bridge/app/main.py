@@ -22,8 +22,7 @@ def native(payload):
  payload["token"]=NATIVE_TOKEN
  try:
   with socket.create_connection((HOST,PORT),timeout=1.5) as s:
-   s.sendall((json.dumps(payload,separators=(',',':'))+"
-").encode()); return json.loads(s.makefile().readline())
+   s.sendall((json.dumps(payload,separators=(',',':'))+"\n").encode()); return json.loads(s.makefile().readline())
  except Exception as e:return {"ok":False,"error":"native_unreachable","detail":type(e).__name__}
 @app.get("/health")
 def health():
