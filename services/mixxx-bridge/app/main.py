@@ -37,7 +37,7 @@ def read(deck:int,x_bridge_token:str|None=Header(default=None)):
 @app.post("/v1/execute")
 def execute(c:Command,x_bridge_token:str|None=Header(default=None)):
  auth(x_bridge_token)
- if c.action not in ALLOWED: raise HTTPException(422,"unsupported action")
+ if c.action not in ALLOWED: raise HTTPException(422,"unsupported action")\n if c.deck not in range(1,5): raise HTTPException(422,"invalid deck")\n if c.value is None: raise HTTPException(422,"value required")
  st=safety()
  if st["emergency_stop"]: raise HTTPException(423,"emergency stop active")
  if not st["certified"]: raise HTTPException(423,"Mixxx certification required")
