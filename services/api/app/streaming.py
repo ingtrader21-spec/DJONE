@@ -33,7 +33,7 @@ def search(q:str|None=None,provider:str|None=None,limit:int=100):
  with conn() as c:
   rows=c.execute("""SELECT id,provider,external_id,title,artist,album,url,artwork_url,created_at,updated_at FROM streaming_tracks
   WHERE (%s IS NULL OR provider=%s) AND (%s IS NULL OR title ILIKE '%%'||%s||'%%' OR artist ILIKE '%%'||%s||'%%' OR album ILIKE '%%'||%s||'%%')
-  ORDER BY updated_at DESC LIMIT %s""",(provider,provider,q,q,q,q,q,limit)).fetchall()
+  ORDER BY updated_at DESC LIMIT %s""",(provider,provider,q,q,q,q,limit)).fetchall()
  keys=["id","provider","external_id","title","artist","album","url","artwork_url","created_at","updated_at"]
  return {"items":[dict(zip(keys,[str(r[0])]+list(r[1:]))) for r in rows],"count":len(rows)}
 @router.post("/playback")
