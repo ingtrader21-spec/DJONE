@@ -49,3 +49,5 @@ CREATE TABLE IF NOT EXISTS webhook_dead_letters (
  endpoint TEXT NOT NULL, attempts INTEGER NOT NULL, last_error TEXT, payload JSONB NOT NULL,
  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS dj_sessions (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'active', created_at TIMESTAMPTZ NOT NULL DEFAULT now(), ended_at TIMESTAMPTZ);
