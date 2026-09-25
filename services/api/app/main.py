@@ -8,6 +8,7 @@ from app.integrations import router as integrations_router
 from app.dispatch import execute_command
 from app.outputs import router as outputs_router
 from app.sessions import router as sessions_router
+from app.streaming import router as streaming_router
 from app.security import authorize as authorize_request
 from pydantic import BaseModel, Field
 from typing import Literal
@@ -19,6 +20,7 @@ app.include_router(core_router)
 app.include_router(integrations_router)
 app.include_router(outputs_router)
 app.include_router(sessions_router)
+app.include_router(streaming_router)
 MODE = os.getenv("DJONE_MODE", "assistant")
 ENV = os.getenv("DJONE_ENV", "development")
 API_TOKEN = os.getenv("DJONE_API_TOKEN", "")
