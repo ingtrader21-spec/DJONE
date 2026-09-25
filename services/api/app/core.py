@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from app.db import conn
 from app.security import authorize
-import hashlib, os, json
+import hashlib, os, json, subprocess, datetime
 
 router=APIRouter(prefix="/v1",tags=["core"],dependencies=[Depends(authorize)])
 class TrackIn(BaseModel):
@@ -24,11 +24,14 @@ def deck(deck:int):
     return {"deck":r[0],"connected":r[1],"track_id":str(r[2]) if r[2] else None,"play":r[3],"bpm":r[4],"key":r[5],"observed_at":r[6]}
 
 @router.get("/library/tracks")
-def tracks():
+def tracks(q:str|None=None,artist:str|None=None,limit:int=100):
+    limit=max(1,min(limit,500))
     with conn() as c:
-        rows=c.execute("SELECT id,sha256,path,source,provenance,status,created_at FROM music_tracks ORDER BY created_at DESC LIMIT 500").fetchall()
-    items=[{"id":str(r[0]),"sha256":r[1],"path":r[2],"source":r[3],"provenance":r[4],"status":r[5],"created_at":r[6]} for r in rows]
-    return {"items":items,"count":len(items)}
+        rows=c.execute("""SELECT id,sha256,path,source,provenance,status,artist,title,album,downloaded_at,imported_at,original_filename,duration_seconds,bpm,musical_key,media_type,created_at
+        FROM music_tracks WHERE (%s IS NULL OR title ILIKE '%%'||%s||'%%' OR artist ILIKE '%%'||%s||'%%' OR album ILIKE '%%'||%s||'%%')
+        AND (%s IS NULL OR artist ILIKE '%%'||%s||'%%') ORDER BY imported_at DESC LIMIT %s""",(q,q,q,q,artist,artist,limit)).fetchall()
+    keys=["id","sha256","path","source","provenance","status","artist","title","album","downloaded_at","imported_at","original_filename","duration_seconds","bpm","musical_key","media_type","created_at"]
+    return {"items":[dict(zip(keys,[str(r[0])]+list(r[1:]))) for r in rows],"count":len(rows)}
 
 @router.post("/library/tracks",status_code=202)
 def ingest(t:TrackIn):
@@ -36,12 +39,14 @@ def ingest(t:TrackIn):
     h=hashlib.sha256()
     with open(t.path,"rb") as f:
         for chunk in iter(lambda:f.read(1024*1024),b""): h.update(chunk)
-    digest=h.hexdigest()
+    digest=h.hexdigest(); m=media_metadata(t.path)
+    downloaded=t.downloaded_at or datetime.datetime.fromtimestamp(os.path.getmtime(t.path),tz=datetime.timezone.utc)
     with conn() as c:
-        r=c.execute("SELECT id,sha256,path,source,provenance,status,created_at FROM music_tracks WHERE sha256=%s",(digest,)).fetchone()
-        if r: return {"id":str(r[0]),"sha256":r[1],"path":r[2],"source":r[3],"provenance":r[4],"status":r[5],"created_at":r[6],"duplicate":True}
-        r=c.execute("INSERT INTO music_tracks(sha256,path,source,provenance) VALUES(%s,%s,%s,%s) RETURNING id,created_at",(digest,t.path,t.source,t.provenance)).fetchone()
-    return {"id":str(r[0]),"sha256":digest,"path":t.path,"source":t.source,"provenance":t.provenance,"status":"registered","created_at":r[1],"duplicate":False}
+        r=c.execute("SELECT id FROM music_tracks WHERE sha256=%s",(digest,)).fetchone()
+        if r: return {"id":str(r[0]),"sha256":digest,"duplicate":True}
+        r=c.execute("""INSERT INTO music_tracks(sha256,path,source,provenance,artist,title,album,downloaded_at,original_filename,duration_seconds,media_type)
+        VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id,imported_at""",(digest,t.path,t.source,t.provenance,m["artist"],m["title"],m["album"],downloaded,os.path.basename(t.path),m["duration"],m["media_type"])).fetchone()
+    return {"id":str(r[0]),"sha256":digest,"artist":m["artist"],"title":m["title"],"album":m["album"],"downloaded_at":downloaded,"imported_at":r[1],"duplicate":False}
 
 @router.get("/safety/status")
 def safety():
