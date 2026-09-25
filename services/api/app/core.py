@@ -9,6 +9,15 @@ class TrackIn(BaseModel):
     path:str
     source:str="local"
     provenance:str|None=None
+    downloaded_at:datetime.datetime|None=None
+
+def media_metadata(path:str):
+    try:
+        raw=subprocess.check_output(["ffprobe","-v","quiet","-print_format","json","-show_format",path],timeout=10)
+        fmt=json.loads(raw).get("format",{}); tags={str(k).lower():v for k,v in fmt.get("tags",{}).items()}
+        return {"artist":tags.get("artist"),"title":tags.get("title") or os.path.splitext(os.path.basename(path))[0],"album":tags.get("album"),"duration":float(fmt["duration"]) if fmt.get("duration") else None,"media_type":fmt.get("format_name")}
+    except Exception:
+        return {"artist":None,"title":os.path.splitext(os.path.basename(path))[0],"album":None,"duration":None,"media_type":None}
 
 @router.get("/decks")
 def decks():
@@ -35,6 +44,9 @@ def tracks(q:str|None=None,artist:str|None=None,limit:int=100):
 
 @router.post("/library/tracks",status_code=202)
 def ingest(t:TrackIn):
+    real=os.path.realpath(t.path); root=os.path.realpath(os.getenv("DJONE_MUSIC_ROOT","/music"))
+    if not (real==root or real.startswith(root+os.sep)): raise HTTPException(422,"path outside managed music library")
+    t.path=real
     if not os.path.isfile(t.path): raise HTTPException(422,"source file not found")
     h=hashlib.sha256()
     with open(t.path,"rb") as f:
