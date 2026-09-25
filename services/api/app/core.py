@@ -84,3 +84,14 @@ def events(limit:int=100):
     with conn() as c:
         rows=c.execute("SELECT id,kind,payload,created_at FROM dj_events ORDER BY id DESC LIMIT %s",(limit,)).fetchall()
     return {"items":[{"id":r[0],"kind":r[1],"payload":r[2],"created_at":r[3]} for r in rows]}
+
+@router.get("/production/status")
+def production_status():
+    with conn() as c:
+        s=c.execute("SELECT execution_enabled,emergency_stop,manual_override,certified,updated_at FROM safety_state WHERE singleton=true").fetchone()
+        counts=c.execute("SELECT count(*) FILTER(WHERE status='COMPLETED'),count(*) FILTER(WHERE status='EXECUTION_FAILED'),count(*) FROM dj_commands").fetchone()
+    blockers=[]
+    if not s[3]: blockers.append("mixxx_not_certified")
+    if s[1]: blockers.append("emergency_stop_active")
+    if not s[2]: blockers.append("manual_override_unavailable")
+    return {"production_candidate":len([x for x in blockers if x!="emergency_stop_active"])==0,"production_enabled":bool(s[0] and not s[1] and s[3]),"safety":{"execution_enabled":s[0],"emergency_stop":s[1],"manual_override":s[2],"certified":s[3],"updated_at":s[4]},"commands":{"completed":counts[0],"failed":counts[1],"total":counts[2]},"blockers":blockers}
