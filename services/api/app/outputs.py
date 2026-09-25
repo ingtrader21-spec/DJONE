@@ -1,8 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 import socket,time,re,urllib.request,urllib.error,os
 
-router=APIRouter(prefix="/v1/outputs",tags=["outputs"])
+router=APIRouter(prefix="/v1/outputs",tags=["outputs"],dependencies=[Depends(authorize)])
 STREAM=os.getenv("SAMSUNG_STREAM_URL","http://10.0.0.73:18093/mix.mp3")
 
 def discover():
