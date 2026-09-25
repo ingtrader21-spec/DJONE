@@ -1,8 +1,9 @@
-from fastapi import APIRouter,HTTPException
+from fastapi import APIRouter,HTTPException,Depends
 from pydantic import BaseModel
 from app.db import conn
+from app.security import authorize
 import uuid
-router=APIRouter(prefix="/v1/sessions",tags=["sessions"])
+router=APIRouter(prefix="/v1/sessions",tags=["sessions"],dependencies=[Depends(authorize)])
 class SessionIn(BaseModel):
  name:str="DJONE Session"
 @router.post("",status_code=201)
