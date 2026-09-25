@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from app.db import conn
+from app.security import authorize
 import hashlib, os, json
 
-router=APIRouter(prefix="/v1",tags=["core"])
+router=APIRouter(prefix="/v1",tags=["core"],dependencies=[Depends(authorize)])
 class TrackIn(BaseModel):
     path:str
     source:str="local"
