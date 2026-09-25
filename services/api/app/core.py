@@ -63,3 +63,24 @@ def resume():
         c.execute("UPDATE safety_state SET emergency_stop=false,updated_at=now() WHERE singleton=true")
         c.execute("INSERT INTO dj_events(kind,payload) VALUES('SAFETY_REARM','{}'::jsonb)")
     return safety()|{"note":"stop cleared; execution remains independently gated"}
+
+class ArmIn(BaseModel):
+    enabled: bool
+
+@router.post("/safety/execution")
+def execution_gate(a:ArmIn):
+    with conn() as c:
+        s=c.execute("SELECT emergency_stop,certified,manual_override FROM safety_state WHERE singleton=true").fetchone()
+        if a.enabled and s[0]: raise HTTPException(409,"clear emergency stop before enabling execution")
+        if a.enabled and not s[1]: raise HTTPException(409,"Mixxx certification required")
+        if a.enabled and not s[2]: raise HTTPException(409,"manual override capability required")
+        c.execute("UPDATE safety_state SET execution_enabled=%s,updated_at=now() WHERE singleton=true",(a.enabled,))
+        c.execute("INSERT INTO dj_events(kind,payload) VALUES('EXECUTION_GATE',jsonb_build_object('enabled',%s))",(a.enabled,))
+    return safety()
+
+@router.get("/events")
+def events(limit:int=100):
+    limit=max(1,min(limit,500))
+    with conn() as c:
+        rows=c.execute("SELECT id,kind,payload,created_at FROM dj_events ORDER BY id DESC LIMIT %s",(limit,)).fetchall()
+    return {"items":[{"id":r[0],"kind":r[1],"payload":r[2],"created_at":r[3]} for r in rows]}
