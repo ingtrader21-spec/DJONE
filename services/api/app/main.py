@@ -69,7 +69,7 @@ def command(c: Command, authorization: str | None = Header(default=None), idempo
         safety=db.execute("SELECT execution_enabled,emergency_stop,certified FROM safety_state WHERE singleton=true").fetchone()
         status="POLICY_APPROVED" if safety[0] and not safety[1] and safety[2] else "VALIDATED_GATE_CLOSED"
         r=db.execute("INSERT INTO dj_commands(idempotency_key,actor,mode,action,deck,value_json,status) VALUES(%s,'api',%s,%s,%s,%s::jsonb,%s) RETURNING id,idempotency_key,actor,mode,action,deck,value_json,status,accepted_at,executed_at,result_json,readback_json",(key,MODE,c.action,c.deck,json.dumps(c.value),status)).fetchone()
-        db.execute("INSERT INTO dj_events(kind,payload) VALUES('COMMAND_RECEIVED',jsonb_build_object('command_id',%s::text,'idempotency_key',%s,'status',%s))",(str(r[0]),key,status))
+        db.execute("INSERT INTO dj_events(kind,payload) VALUES('COMMAND_RECEIVED',jsonb_build_object('command_id',%s::text,'idempotency_key',%s::text,'status',%s::text))",(str(r[0]),key,status))
     if status!="POLICY_APPROVED": return _row_command(r)|{"duplicate":False,"executed":False}
     out,result=execute_command(r[0],c.action,c.deck,c.value)
     return _row_command(out)|{"duplicate":False,"executed":result.get("executed",False),"readback_verified":result.get("readback_verified",False)}
