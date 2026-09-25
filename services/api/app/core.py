@@ -95,3 +95,11 @@ def production_status():
     if s[1]: blockers.append("emergency_stop_active")
     if not s[2]: blockers.append("manual_override_unavailable")
     return {"production_candidate":len([x for x in blockers if x!="emergency_stop_active"])==0,"production_enabled":bool(s[0] and not s[1] and s[3]),"safety":{"execution_enabled":s[0],"emergency_stop":s[1],"manual_override":s[2],"certified":s[3],"updated_at":s[4]},"commands":{"completed":counts[0],"failed":counts[1],"total":counts[2]},"blockers":blockers}
+
+@router.get("/certification/evidence")
+def certification_evidence():
+    with conn() as c:
+        safety_row=c.execute("SELECT execution_enabled,emergency_stop,manual_override,certified,updated_at FROM safety_state WHERE singleton=true").fetchone()
+        mutation=c.execute("SELECT payload,created_at FROM dj_events WHERE kind='MIXXX_CERT_MUTATION' ORDER BY id DESC LIMIT 1").fetchone()
+        recent=c.execute("SELECT idempotency_key,status,result_json,readback_json,executed_at FROM dj_commands ORDER BY accepted_at DESC LIMIT 20").fetchall()
+    return {"safety":{"execution_enabled":safety_row[0],"emergency_stop":safety_row[1],"manual_override":safety_row[2],"certified":safety_row[3],"updated_at":safety_row[4]},"native_mutation":None if not mutation else {"payload":mutation[0],"created_at":mutation[1]},"recent_commands":[{"idempotency_key":r[0],"status":r[1],"result":r[2],"readback":r[3],"executed_at":r[4]} for r in recent]}
