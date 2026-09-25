@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
+from app.security import authorize
 import socket,time,re,urllib.request,urllib.error,os
 
 router=APIRouter(prefix="/v1/outputs",tags=["outputs"],dependencies=[Depends(authorize)])
