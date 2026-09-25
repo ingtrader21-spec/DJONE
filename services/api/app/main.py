@@ -8,6 +8,7 @@ from app.integrations import router as integrations_router
 from app.dispatch import execute_command
 from app.outputs import router as outputs_router
 from app.sessions import router as sessions_router
+from app.security import authorize as authorize_request
 from pydantic import BaseModel, Field
 from typing import Literal
 import os, time, uuid, json
@@ -31,13 +32,7 @@ class Command(BaseModel):
     deck: int | None = Field(default=None, ge=1, le=4)
     value: str | float | int | bool | None = None
 
-def authorize(authorization: str | None):
-    if not API_TOKEN:
-        if ENV == "staging":
-            raise HTTPException(503, "DJONE_API_TOKEN is required in staging")
-        return
-    if authorization != f"Bearer {API_TOKEN}":
-        raise HTTPException(401, "unauthorized")
+authorize=authorize_request
 
 app.mount("/ui", StaticFiles(directory=UI_DIR), name="ui")
 
