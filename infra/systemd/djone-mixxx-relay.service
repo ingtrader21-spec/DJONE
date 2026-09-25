@@ -1,0 +1,10 @@
+[Unit]
+Description=DJONE Mixxx Docker-to-localhost relay
+After=docker.service network-online.target
+Wants=docker.service
+[Service]
+ExecStart=/usr/bin/socat TCP-LISTEN:18092,bind=172.21.0.1,reuseaddr,fork TCP:127.0.0.1:18092
+Restart=always
+RestartSec=2
+[Install]
+WantedBy=multi-user.target
