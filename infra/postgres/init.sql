@@ -61,3 +61,11 @@ ALTER TABLE music_tracks ADD COLUMN IF NOT EXISTS original_filename TEXT;
 ALTER TABLE music_tracks ADD COLUMN IF NOT EXISTS media_type TEXT;
 CREATE INDEX IF NOT EXISTS music_tracks_artist_idx ON music_tracks(lower(artist));
 CREATE INDEX IF NOT EXISTS music_tracks_title_idx ON music_tracks(lower(title));
+
+CREATE TABLE IF NOT EXISTS streaming_tracks (
+ id UUID PRIMARY KEY DEFAULT gen_random_uuid(), provider TEXT NOT NULL, external_id TEXT NOT NULL,
+ title TEXT NOT NULL, artist TEXT, album TEXT, url TEXT NOT NULL, artwork_url TEXT,
+ created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+ UNIQUE(provider,external_id));
+CREATE INDEX IF NOT EXISTS streaming_tracks_title_idx ON streaming_tracks(lower(title));
+CREATE INDEX IF NOT EXISTS streaming_tracks_artist_idx ON streaming_tracks(lower(artist));
