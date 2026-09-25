@@ -9,7 +9,9 @@ services:
       REDIS_URL: redis://redis:6379/0
       BRIDGE_URL: http://mixxx-bridge:8091
       BRIDGE_TOKEN: ${BRIDGE_TOKEN:-}
-    ports: ["127.0.0.1:${DJONE_HTTP_PORT:-8092}:8090"]\n    volumes:\n      - ${DJONE_MUSIC_DIR:-/home/codestra/Music/DJONE}:/music:ro
+    ports: ["127.0.0.1:${DJONE_HTTP_PORT:-8092}:8090"]
+    volumes:
+      - ${DJONE_MUSIC_DIR:-/home/codestra/Music/DJONE}:/music:ro
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
