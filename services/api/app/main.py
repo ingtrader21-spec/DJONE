@@ -5,6 +5,7 @@ from app.remix import router as remix_router
 from app.core import router as core_router
 from app.db import conn
 from app.integrations import router as integrations_router
+from app.dispatch import execute_command
 from pydantic import BaseModel, Field
 from typing import Literal
 import os, time, uuid, json
@@ -70,7 +71,7 @@ def command(c: Command, authorization: str | None = Header(default=None), idempo
         status="POLICY_APPROVED" if safety[0] and not safety[1] and safety[2] else "VALIDATED_GATE_CLOSED"
         r=db.execute("INSERT INTO dj_commands(idempotency_key,actor,mode,action,deck,value_json,status) VALUES(%s,'api',%s,%s,%s,%s::jsonb,%s) RETURNING id,idempotency_key,actor,mode,action,deck,value_json,status,accepted_at,executed_at,result_json,readback_json",(key,MODE,c.action,c.deck,json.dumps(c.value),status)).fetchone()
         db.execute("INSERT INTO dj_events(kind,payload) VALUES('COMMAND_RECEIVED',jsonb_build_object('command_id',%s::text,'idempotency_key',%s,'status',%s))",(str(r[0]),key,status))
-    return _row_command(r)|{"duplicate":False,"executed":False}
+    if status!="POLICY_APPROVED": return _row_command(r)|{"duplicate":False,"executed":False}\n    out,result=execute_command(r[0],c.action,c.deck,c.value)\n    return _row_command(out)|{"duplicate":False,"executed":result.get("executed",False),"readback_verified":result.get("readback_verified",False)}
 
 @app.get("/v1/commands/{idempotency_key}")
 def command_status(idempotency_key: str, authorization: str | None = Header(default=None)):
