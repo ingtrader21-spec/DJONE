@@ -44,3 +44,18 @@ def playback(p:Playback):
   r=c.execute("SELECT url FROM streaming_tracks WHERE provider=%s AND external_id=%s",(p.provider,p.external_id)).fetchone()
  if not r: raise HTTPException(404,"streaming reference not found")
  return {"provider":p.provider,"external_id":p.external_id,"action":"open","url":r[0],"download":False}
+
+@router.get("/search")
+def unified_search(q:str,limit:int=50):
+ limit=max(1,min(limit,100))
+ with conn() as c:
+  local=c.execute("""SELECT id,title,artist,album,path,source,imported_at FROM music_tracks
+   WHERE title ILIKE '%%'||%s::text||'%%' OR artist ILIKE '%%'||%s::text||'%%' OR album ILIKE '%%'||%s::text||'%%'
+   ORDER BY imported_at DESC LIMIT %s""",(q,q,q,limit)).fetchall()
+  remote=c.execute("""SELECT id,provider,external_id,title,artist,album,url,artwork_url,updated_at FROM streaming_tracks
+   WHERE title ILIKE '%%'||%s::text||'%%' OR artist ILIKE '%%'||%s::text||'%%' OR album ILIKE '%%'||%s::text||'%%'
+   ORDER BY updated_at DESC LIMIT %s""",(q,q,q,limit)).fetchall()
+ items=[{"kind":"local","id":str(r[0]),"title":r[1],"artist":r[2],"album":r[3],"path":r[4],"source":r[5],"updated_at":r[6],"downloadable":True} for r in local]
+ items += [{"kind":"streaming","id":str(r[0]),"provider":r[1],"external_id":r[2],"title":r[3],"artist":r[4],"album":r[5],"url":r[6],"artwork_url":r[7],"updated_at":r[8],"downloadable":False} for r in remote]
+ items.sort(key=lambda x:x["updated_at"],reverse=True)
+ return {"query":q,"items":items[:limit],"count":min(len(items),limit)}
