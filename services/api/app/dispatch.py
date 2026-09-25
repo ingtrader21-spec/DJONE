@@ -11,6 +11,6 @@ def execute_command(command_id, action, deck, value):
     final="COMPLETED" if result.get("executed") and result.get("readback_verified") else "EXECUTION_FAILED"
     with conn() as db:
         db.execute("UPDATE dj_commands SET status=%s,executed_at=now(),result_json=%s::jsonb,readback_json=%s::jsonb WHERE id=%s",(final,json.dumps(result),json.dumps(result.get("after")),str(command_id)))
-        db.execute("INSERT INTO dj_events(kind,payload) VALUES('COMMAND_RESULT',jsonb_build_object('command_id',%s::text,'status',%s))",(str(command_id),final))
+        db.execute("INSERT INTO dj_events(kind,payload) VALUES('COMMAND_RESULT',jsonb_build_object('command_id',%s::text,'status',%s::text))",(str(command_id),final))
         r=db.execute("SELECT id,idempotency_key,actor,mode,action,deck,value_json,status,accepted_at,executed_at,result_json,readback_json FROM dj_commands WHERE id=%s",(str(command_id),)).fetchone()
     return r,result
