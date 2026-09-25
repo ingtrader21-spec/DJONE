@@ -51,3 +51,13 @@ CREATE TABLE IF NOT EXISTS webhook_dead_letters (
 );
 
 CREATE TABLE IF NOT EXISTS dj_sessions (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'active', created_at TIMESTAMPTZ NOT NULL DEFAULT now(), ended_at TIMESTAMPTZ);
+
+ALTER TABLE music_tracks ADD COLUMN IF NOT EXISTS artist TEXT;
+ALTER TABLE music_tracks ADD COLUMN IF NOT EXISTS title TEXT;
+ALTER TABLE music_tracks ADD COLUMN IF NOT EXISTS album TEXT;
+ALTER TABLE music_tracks ADD COLUMN IF NOT EXISTS downloaded_at TIMESTAMPTZ;
+ALTER TABLE music_tracks ADD COLUMN IF NOT EXISTS imported_at TIMESTAMPTZ NOT NULL DEFAULT now();
+ALTER TABLE music_tracks ADD COLUMN IF NOT EXISTS original_filename TEXT;
+ALTER TABLE music_tracks ADD COLUMN IF NOT EXISTS media_type TEXT;
+CREATE INDEX IF NOT EXISTS music_tracks_artist_idx ON music_tracks(lower(artist));
+CREATE INDEX IF NOT EXISTS music_tracks_title_idx ON music_tracks(lower(title));
