@@ -6,6 +6,7 @@ from app.core import router as core_router
 from app.db import conn
 from app.integrations import router as integrations_router
 from app.dispatch import execute_command
+from app.outputs import router as outputs_router
 from pydantic import BaseModel, Field
 from typing import Literal
 import os, time, uuid, json
@@ -14,6 +15,7 @@ app = FastAPI(title="DJONE Control API", version="0.3.0")
 app.include_router(remix_router)
 app.include_router(core_router)
 app.include_router(integrations_router)
+app.include_router(outputs_router)
 MODE = os.getenv("DJONE_MODE", "assistant")
 ENV = os.getenv("DJONE_ENV", "development")
 API_TOKEN = os.getenv("DJONE_API_TOKEN", "")
