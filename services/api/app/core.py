@@ -28,8 +28,8 @@ def tracks(q:str|None=None,artist:str|None=None,limit:int=100):
     limit=max(1,min(limit,500))
     with conn() as c:
         rows=c.execute("""SELECT id,sha256,path,source,provenance,status,artist,title,album,downloaded_at,imported_at,original_filename,duration_seconds,bpm,musical_key,media_type,created_at
-        FROM music_tracks WHERE (%s IS NULL OR title ILIKE '%%'||%s||'%%' OR artist ILIKE '%%'||%s||'%%' OR album ILIKE '%%'||%s||'%%')
-        AND (%s IS NULL OR artist ILIKE '%%'||%s||'%%') ORDER BY imported_at DESC LIMIT %s""",(q,q,q,q,artist,artist,limit)).fetchall()
+        FROM music_tracks WHERE (%s::text IS NULL OR title ILIKE '%%'||%s::text||'%%' OR artist ILIKE '%%'||%s::text||'%%' OR album ILIKE '%%'||%s::text||'%%')
+        AND (%s::text IS NULL OR artist ILIKE '%%'||%s::text||'%%') ORDER BY imported_at DESC LIMIT %s""",(q,q,q,q,artist,artist,limit)).fetchall()
     keys=["id","sha256","path","source","provenance","status","artist","title","album","downloaded_at","imported_at","original_filename","duration_seconds","bpm","musical_key","media_type","created_at"]
     return {"items":[dict(zip(keys,[str(r[0])]+list(r[1:]))) for r in rows],"count":len(rows)}
 
