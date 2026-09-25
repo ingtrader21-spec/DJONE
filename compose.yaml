@@ -22,8 +22,9 @@ services:
       DJONE_MIXXX_TOKEN: ${DJONE_MIXXX_TOKEN:-}
       DJONE_MIXXX_HOST: 172.21.0.1
       DJONE_MIXXX_PORT: 18092
-      MIXXX_EXECUTION_ENABLED: ${MIXXX_EXECUTION_ENABLED:-false}
-      EMERGENCY_STOP: ${EMERGENCY_STOP:-false}
+      DATABASE_URL: postgresql://djone:${POSTGRES_PASSWORD:-djone}@postgres:5432/djone
+    depends_on:
+      postgres: { condition: service_healthy }
     healthcheck:
       test: ["CMD","python","-c","import urllib.request; urllib.request.urlopen('http://localhost:8091/health')"]
       interval: 5s
