@@ -2,6 +2,7 @@ from fastapi import APIRouter,Depends,HTTPException
 from pydantic import BaseModel,HttpUrl
 from app.db import conn
 from app.security import authorize
+from app.providers import status as provider_status,spotify_search,youtube_search
 router=APIRouter(prefix="/v1/streaming",tags=["streaming"],dependencies=[Depends(authorize)])
 PROVIDERS={"spotify","youtube_music"}
 class Ref(BaseModel):
@@ -18,7 +19,7 @@ class Playback(BaseModel):
  action:str="open"
 @router.get("/providers")
 def providers():
- return {"items":[{"id":"spotify","mode":"reference","download":False},{"id":"youtube_music","mode":"reference","download":False}]}
+ st=provider_status(); return {"items":[{"id":"spotify","mode":"catalog_reference","configured":st["spotify"],"download":False},{"id":"youtube_music","mode":"catalog_reference","configured":st["youtube_music"],"download":False}]}
 @router.post("/references",status_code=201)
 def add(r:Ref):
  if r.provider not in PROVIDERS: raise HTTPException(422,"unsupported provider")
@@ -59,3 +60,14 @@ def unified_search(q:str,limit:int=50):
  items += [{"kind":"streaming","id":str(r[0]),"provider":r[1],"external_id":r[2],"title":r[3],"artist":r[4],"album":r[5],"url":r[6],"artwork_url":r[7],"updated_at":r[8],"downloadable":False} for r in remote]
  items.sort(key=lambda x:x["updated_at"],reverse=True)
  return {"query":q,"items":items[:limit],"count":min(len(items),limit)}
+
+@router.get("/catalog/search")
+def catalog_search(q:str,provider:str="all",limit:int=10):
+ limit=max(1,min(limit,25)); st=provider_status(); items=[]; errors={}
+ if provider in ("all","spotify") and st["spotify"]:
+  try: items.extend(spotify_search(q,limit))
+  except Exception as e: errors["spotify"]=type(e).__name__
+ if provider in ("all","youtube_music") and st["youtube_music"]:
+  try: items.extend(youtube_search(q,limit))
+  except Exception as e: errors["youtube_music"]=type(e).__name__
+ return {"query":q,"provider":provider,"items":items,"count":len(items),"configured":st,"errors":errors}
